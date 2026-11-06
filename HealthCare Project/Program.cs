@@ -1,4 +1,7 @@
 
+using HealthCare_Project.Data;
+using Microsoft.EntityFrameworkCore;
+
 namespace HealthCare_Project
 {
     public class Program
@@ -13,6 +16,9 @@ namespace HealthCare_Project
             // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
+
+            builder.Services.AddDbContext<ApplicationDbContext>(options =>
+            options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultSqlConnection")));
 
             var app = builder.Build();
 
