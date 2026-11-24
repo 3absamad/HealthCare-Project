@@ -1,4 +1,5 @@
-﻿using HealthCare_Project.Data;
+﻿using AutoMapper;
+using HealthCare_Project.Data;
 using HealthCare_Project.Dtos.Appointment;
 using HealthCare_Project.Entites;
 using Microsoft.AspNetCore.Mvc;
@@ -11,24 +12,27 @@ namespace HealthCare_Project.Controllers
     public class AppointmentsController : ControllerBase
     {
         private readonly ApplicationDbContext _context;
+        private readonly IMapper _mapper;
 
-        public AppointmentsController(ApplicationDbContext context)
+        public AppointmentsController(ApplicationDbContext context, IMapper mapper)
         {
             _context = context;
+            _mapper = mapper;
         }
 
         [HttpGet]
         public async Task<ActionResult<IEnumerable<AppointmentReadDto>>> GetAll()
         {
             var appointments = await _context.Appointments
-                .Select(a => new AppointmentReadDto
-                {
-                    PatientId = a.PatientId,
-                    DoctorId = a.DoctorId,
-                    AppointmentDate = a.AppointmentDate
-                })
+                //.Select(a => new AppointmentReadDto
+                //{
+                //    PatientId = a.PatientId,
+                //    DoctorId = a.DoctorId,
+                //    AppointmentDate = a.AppointmentDate
+                //})
                 .ToListAsync();
 
+            var appointmentResponse = _mapper.Map<List<Appointment>?, List<AppointmentReadDto>>(appointments);
             return Ok(appointments);
         }
 
@@ -38,19 +42,23 @@ namespace HealthCare_Project.Controllers
             int doctorId)
         {
             var appointment = await _context.Appointments
-                .Where(a =>
+                //.Where(a =>
+                //    a.PatientId == patientId &&
+                //    a.DoctorId == doctorId)
+                //.Select(a => new AppointmentReadDto
+                //{
+                //    PatientId = a.PatientId,
+                //    DoctorId = a.DoctorId,
+                //    AppointmentDate = a.AppointmentDate
+                //})
+                .FirstOrDefaultAsync(a =>
                     a.PatientId == patientId &&
-                    a.DoctorId == doctorId)
-                .Select(a => new AppointmentReadDto
-                {
-                    PatientId = a.PatientId,
-                    DoctorId = a.DoctorId,
-                    AppointmentDate = a.AppointmentDate
-                })
-                .FirstOrDefaultAsync();
+                    a.DoctorId == doctorId);
 
             if (appointment == null)
                 return NotFound();
+
+            var appointmentResponse = _mapper.Map<Appointment, AppointmentReadDto>(appointment);
 
             return Ok(appointment);
         }
@@ -62,6 +70,7 @@ namespace HealthCare_Project.Controllers
             var patientExists = await _context.Patients
                 .AnyAsync(p => p.Id == dto.PatientId);
 
+                if(!patientExists)
                 return BadRequest("Patient does not exist.");
 
             var doctorExists = await _context.Doctors

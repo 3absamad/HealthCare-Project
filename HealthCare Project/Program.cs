@@ -1,5 +1,7 @@
 
 using HealthCare_Project.Data;
+using HealthCare_Project.Extensions;
+using HealthCare_Project.Helper;
 using Microsoft.EntityFrameworkCore;
 
 namespace HealthCare_Project
@@ -14,12 +16,10 @@ namespace HealthCare_Project
 
             builder.Services.AddControllers();
             // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
-            builder.Services.AddOpenApi();
-            builder.Services.AddEndpointsApiExplorer();
-            builder.Services.AddSwaggerGen();
 
-            builder.Services.AddDbContext<ApplicationDbContext>(options =>
-            options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultSqlConnection")));
+            //Using Extension Folder
+            builder.Services.AddServices(builder.Configuration);
+
 
             var app = builder.Build();
 

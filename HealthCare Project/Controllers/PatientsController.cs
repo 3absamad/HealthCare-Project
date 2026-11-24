@@ -1,4 +1,6 @@
-﻿using HealthCare_Project.Data;
+﻿using AutoMapper;
+using HealthCare_Project.Data;
+using HealthCare_Project.Dtos.Appointment;
 using HealthCare_Project.Dtos.Patient;
 using HealthCare_Project.Entites;
 using Microsoft.AspNetCore.Mvc;
@@ -12,24 +14,27 @@ namespace HealthCare_Project.Controllers
     public class PatientsController : ControllerBase
     {
         private readonly ApplicationDbContext _context;
+        private readonly IMapper _mapper;
 
-        public PatientsController(ApplicationDbContext context)
+        public PatientsController(ApplicationDbContext context, IMapper mapper)
         {
             _context = context;
+            _mapper = mapper;
         }
 
         [HttpGet]
         public async Task<ActionResult<IEnumerable<PatientReadDto>>> GetAll()
         {
             var patients = await _context.Patients
-                .Select(p => new PatientReadDto
-                {
-                    Id = p.Id,
-                    Name = p.Name,
-                    DateOfBirth = p.DateOfBirth
-                })
+                //.Select(p => new PatientReadDto
+                //{
+                //    Id = p.Id,
+                //    Name = p.Name,
+                //    DateOfBirth = p.DateOfBirth
+                //})
                 .ToListAsync();
 
+            var patientResponse = _mapper.Map<List<Patient>?, List<PatientReadDto>>(patients);
             return Ok(patients);
         }
 
@@ -37,18 +42,19 @@ namespace HealthCare_Project.Controllers
         public async Task<ActionResult<PatientReadDto>> GetById(int id)
         {
             var patient = await _context.Patients
-                .Where(p => p.Id == id)
-                .Select(p => new PatientReadDto
-                {
-                    Id = p.Id,
-                    Name = p.Name,
-                    DateOfBirth = p.DateOfBirth
-                })
-                .FirstOrDefaultAsync();
+                //.Where(p => p.Id == id)
+                //.Select(p => new PatientReadDto
+                //{
+                //    Id = p.Id,
+                //    Name = p.Name,
+                //    DateOfBirth = p.DateOfBirth
+                //})
+                .FirstOrDefaultAsync(p => p.Id == id);
 
             if (patient == null)
                 return NotFound();
 
+            var patientResponse = _mapper.Map<Patient, PatientReadDto>(patient);
             return Ok(patient);
         }
 
