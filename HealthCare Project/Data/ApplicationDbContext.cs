@@ -1,6 +1,7 @@
 ﻿using HealthCare_Project.Entites;
 using Microsoft.EntityFrameworkCore;
 using System.Data.Common;
+using System.Reflection;
 
 namespace HealthCare_Project.Data
 {
@@ -11,23 +12,7 @@ namespace HealthCare_Project.Data
         }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            base.OnModelCreating(modelBuilder);
-
-            // Composite Primary Key
-            modelBuilder.Entity<Appointment>()
-                        .HasKey(a => new { a.PatientId, a.DoctorId });
-
-            // Patient - Appointment relationship
-            modelBuilder.Entity<Appointment>()
-                        .HasOne(a => a.Patient)
-                        .WithMany(p => p.Appointments)
-                        .HasForeignKey(a => a.PatientId);
-
-            // Doctor - Appointment relationship
-            modelBuilder.Entity<Appointment>()
-                        .HasOne(a => a.Doctor)
-                        .WithMany(d => d.Appointments)
-                        .HasForeignKey(a => a.DoctorId);
+            modelBuilder.ApplyConfigurationsFromAssembly(Assembly.GetExecutingAssembly());
         }
         public DbSet<Patient> Patients { get; set; }
         public DbSet<Doctor> Doctors { get; set; }

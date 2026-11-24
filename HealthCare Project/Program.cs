@@ -6,7 +6,7 @@ namespace HealthCare_Project
 {
     public class Program
     {
-        public static void Main(string[] args)
+        public static async Task Main(string[] args)
         {
             var builder = WebApplication.CreateBuilder(args);
 
@@ -14,6 +14,7 @@ namespace HealthCare_Project
 
             builder.Services.AddControllers();
             // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
+            builder.Services.AddOpenApi();
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
 
@@ -21,6 +22,22 @@ namespace HealthCare_Project
             options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultSqlConnection")));
 
             var app = builder.Build();
+
+            // Automatic Migration
+            using var scope = app.Services.CreateScope();
+            var services = scope.ServiceProvider;
+            var loggerFactory = services.GetRequiredService<ILoggerFactory>();
+            try
+            {
+                using var dbContext = services.GetRequiredService<ApplicationDbContext>();
+                await dbContext.Database.MigrateAsync();
+                await DoctorsSeeding.SeedAsync(dbContext);
+            }
+            catch (Exception ex)
+            {
+                var logger = loggerFactory.CreateLogger<Program>();
+                logger.LogError(ex, ex?.Message ?? ex?.InnerException?.Message);
+            }
 
             // Configure the HTTP request pipeline.
             if (app.Environment.IsDevelopment())

@@ -24,18 +24,18 @@ namespace HealthCare_Project.Migrations
 
             modelBuilder.Entity("HealthCare_Project.Entites.Appointment", b =>
                 {
-                    b.Property<int>("PatientId")
+                    b.Property<int>("DoctorId")
                         .HasColumnType("int");
 
-                    b.Property<int>("DoctorId")
+                    b.Property<int>("PatientId")
                         .HasColumnType("int");
 
                     b.Property<DateTime>("AppointmentDate")
                         .HasColumnType("datetime2");
 
-                    b.HasKey("PatientId", "DoctorId");
+                    b.HasKey("DoctorId", "PatientId");
 
-                    b.HasIndex("DoctorId");
+                    b.HasIndex("PatientId");
 
                     b.ToTable("Appointments");
                 });
@@ -50,7 +50,8 @@ namespace HealthCare_Project.Migrations
 
                     b.Property<string>("Name")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
 
                     b.Property<string>("Specialization")
                         .IsRequired()
