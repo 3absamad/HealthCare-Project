@@ -3,6 +3,7 @@ using HealthCare_Project.Data;
 using HealthCare_Project.Dtos.Appointment;
 using HealthCare_Project.Dtos.Patient;
 using HealthCare_Project.Entites;
+using HealthCare_Project.Results;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Runtime.InteropServices;
@@ -15,11 +16,13 @@ namespace HealthCare_Project.Controllers
     {
         private readonly ApplicationDbContext _context;
         private readonly IMapper _mapper;
+        private readonly ILogger<PatientsController> _logger;
 
-        public PatientsController(ApplicationDbContext context, IMapper mapper)
+        public PatientsController(ApplicationDbContext context, IMapper mapper, ILogger<PatientsController> logger)
         {
             _context = context;
             _mapper = mapper;
+            _logger = logger;
         }
 
         [HttpGet]
@@ -33,9 +36,9 @@ namespace HealthCare_Project.Controllers
                 //    DateOfBirth = p.DateOfBirth
                 //})
                 .ToListAsync();
-
+        
             var patientResponse = _mapper.Map<List<Patient>?, List<PatientReadDto>>(patients);
-            return Ok(patients);
+            return Ok(patientResponse);
         }
 
         [HttpGet("{id}")]
@@ -55,8 +58,63 @@ namespace HealthCare_Project.Controllers
                 return NotFound();
 
             var patientResponse = _mapper.Map<Patient, PatientReadDto>(patient);
-            return Ok(patient);
+            return Ok(patientResponse);
         }
+
+        #region Pagination and Search
+        [HttpGet("paged")]
+        public async Task<ActionResult<IEnumerable<PatientReadDto>>> GetAll(int pageNumber, int pageSize, string? searchTerm)
+        {
+            var totalCount = 0;
+            List<Patient> patients = new List<Patient>();
+            if (searchTerm is not null)
+            {
+                 patients = await _context.Patients
+                    //.Select(p => new PatientReadDto
+                    //{
+                    //    Id = p.Id,
+                    //    Name = p.Name,
+                    //    DateOfBirth = p.DateOfBirth
+                    //})
+                    .Where(p => p.Name.Contains(searchTerm))
+                    .Skip((pageNumber - 1) * pageSize)
+                    .Take(pageSize)
+                    .ToListAsync();
+
+                totalCount = await _context.Patients
+                    .CountAsync(p => p.Name.Contains(searchTerm));
+            }
+
+            else
+            {
+                 patients = await _context.Patients
+                                             .Skip((pageNumber - 1) * pageSize)
+                                             .Take(pageSize)
+                                             .ToListAsync();
+
+                totalCount = await _context.Patients
+                                           .CountAsync();
+            }
+
+            _logger.LogInformation("Get All Patients Endpoints", patients);
+
+            var patientsResponse = _mapper.Map<List<PatientReadDto>>(patients);
+            var paginatedList = new PaginatedList<PatientReadDto>
+            {
+                PageSize = pageSize,
+                PageNumber = pageNumber,
+                TotalRecords = totalCount,
+                TotalPages = (int)Math.Ceiling(totalCount / (double)pageSize),
+                Data = patientsResponse
+            };
+
+            var result = GenericResult<PaginatedList<PatientReadDto>>.Success(paginatedList);
+            return Ok(result);
+
+        }
+        #endregion
+
+
 
         [HttpPost]
         public async Task<ActionResult<PatientReadDto>> Create(

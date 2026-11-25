@@ -35,7 +35,7 @@ namespace HealthCare_Project.Controllers
 
             var doctorResponse = _mapper.Map<List<Doctor>?, List<DoctorReadDto>>(doctors);
 
-            return Ok(doctors);
+            return Ok(doctorResponse);
         }
 
         [HttpGet("{id}")]
@@ -56,7 +56,7 @@ namespace HealthCare_Project.Controllers
 
             var doctorResponse = _mapper.Map<Doctor, DoctorReadDto>(doctor);
 
-            return Ok(doctor);
+            return Ok(doctorResponse);
         }
 
         [HttpPost]

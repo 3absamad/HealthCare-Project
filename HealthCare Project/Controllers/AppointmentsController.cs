@@ -24,16 +24,20 @@ namespace HealthCare_Project.Controllers
         public async Task<ActionResult<IEnumerable<AppointmentReadDto>>> GetAll()
         {
             var appointments = await _context.Appointments
+                .Include(a => a.Patient)
+                .Include(a => a.Doctor)
                 //.Select(a => new AppointmentReadDto
                 //{
                 //    PatientId = a.PatientId,
                 //    DoctorId = a.DoctorId,
-                //    AppointmentDate = a.AppointmentDate
+                //    AppointmentDate = a.AppointmentDate,
+                //    PatientName = a.Patient.Name,
+                //    DoctorName = a.Doctor.Name,
                 //})
                 .ToListAsync();
 
             var appointmentResponse = _mapper.Map<List<Appointment>?, List<AppointmentReadDto>>(appointments);
-            return Ok(appointments);
+            return Ok(appointmentResponse);
         }
 
         [HttpGet("{patientId}/{doctorId}")]
@@ -42,6 +46,8 @@ namespace HealthCare_Project.Controllers
             int doctorId)
         {
             var appointment = await _context.Appointments
+                .Include(a => a.Patient)
+                .Include(a => a.Doctor)
                 //.Where(a =>
                 //    a.PatientId == patientId &&
                 //    a.DoctorId == doctorId)
@@ -60,7 +66,7 @@ namespace HealthCare_Project.Controllers
 
             var appointmentResponse = _mapper.Map<Appointment, AppointmentReadDto>(appointment);
 
-            return Ok(appointment);
+            return Ok(appointmentResponse);
         }
 
         [HttpPost]
